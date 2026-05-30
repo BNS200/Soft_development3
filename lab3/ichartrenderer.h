@@ -1,0 +1,4 @@
+#ifndef ICHARTRENDERER_H
+#define ICHARTRENDERER_H
+
+#endif // ICHARTRENDERER_H

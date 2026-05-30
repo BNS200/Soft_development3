@@ -23,6 +23,14 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(lab3
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        ioccontainer.h
+        idataprovider.h
+        ichartrenderer.h
+        iprintstyle.h
+        barchartrenderer.h barchartrenderer.cpp
+        piechartrenderer.h piechartrenderer.cpp
+        colorstyle.h colorstyle.cpp
+        graystyle.h graystyle.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET lab3 APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

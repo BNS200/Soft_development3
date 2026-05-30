@@ -1,0 +1,4 @@
+#ifndef IPRINTSTYLE_H
+#define IPRINTSTYLE_H
+
+#endif // IPRINTSTYLE_H
