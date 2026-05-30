@@ -32,6 +32,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         colorstyle.h colorstyle.cpp
         graystyle.h graystyle.cpp
         jsonadapter.h jsonadapter.cpp
+        sqliteadapter.h sqliteadapter.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET lab3 APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

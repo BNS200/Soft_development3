@@ -1,3 +1,3 @@
 #include "jsonadapter.h"
 
-jsonadapter::jsonadapter() {}
+JSONDataAdapter::JSONDataAdapter(const QString& filePath, const QString& dateFormat) {}
