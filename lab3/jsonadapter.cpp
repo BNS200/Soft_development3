@@ -12,3 +12,47 @@ QString JSONDataAdapter::getDescription() const
     return QString("JSON: %1").arg(m_filePath);
 }
 
+DataSet JSONDataAdapter::getData() const
+{
+    DataSet result;
+
+    QFile file(m_filePath);
+    if (!file.open(QIODevice::ReadOnly)) {
+        qDebug() << "Cannot open JSON file:" << m_filePath;
+        return result;
+    }
+
+    QByteArray jsonData = file.readAll();
+    QJsonDocument doc = QJsonDocument::fromJson(jsonData);
+
+    if (doc.isNull()) {
+        qDebug() << "Invalid JSON format in file:" << m_filePath;
+        file.close();
+        return result;
+    }
+
+    QJsonArray array = doc.array();
+
+    for (int i = 0; i < array.size(); ++i) {
+        QJsonObject obj = array[i].toObject();
+        DataPoint point;
+
+        if (obj.contains("date")) {
+            point.date = QDateTime::fromString(obj["date"].toString(), m_dateFormat);
+        }
+        if (obj.contains("value")) {
+            point.value = obj["value"].toDouble();
+        }
+
+        if (obj.contains("label")) {
+            point.label = obj["label"].toString();
+        } else {
+            point.label = point.date.toString("dd.MM.yyyy");
+        }
+
+        result.append(point);
+    }
+
+    file.close();
+    return result;
+}
