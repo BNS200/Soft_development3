@@ -1,9 +1,13 @@
 #ifndef SQLITEADAPTER_H
 #define SQLITEADAPTER_H
 #include "idataprovider.h"
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QDebug>
 
 
-class SQLiteDataAdapter : public IDataProvider {
+class SQLiteAdapter : public IDataProvider {
 private:
     QString m_dbPath;
     QString m_tableName;
@@ -12,7 +16,7 @@ private:
     QString m_dateFormat;
 
 public:
-    SQLiteDataAdapter(const QString& dbPath, const QString& tableName, const QString& dateColumn, const QString& valueColumn, const QString& dateFormat);
+    SQLiteAdapter(const QString& dbPath, const QString& tableName, const QString& dateColumn, const QString& valueColumn, const QString& dateFormat);
 
     DataSet getData() const override;
     QString getSourceName() const override;
