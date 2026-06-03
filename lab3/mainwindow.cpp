@@ -1,3 +1,4 @@
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QSplitter>
@@ -24,21 +25,18 @@ MainWindow::MainWindow(QWidget *parent)
     leftPartModel->setRootPath(homePath);
 
     rightPartModel = new QFileSystemModel(this);
-    rightPartModel->setFilter(QDir::Files);
-    rightPartModel->setRootPath(homePath);
+    rightPartModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
 
+    rightPartModel->setRootPath(homePath);
     treeView = new QTreeView(this);
     treeView->setModel(leftPartModel);
     treeView->expandAll();
-
-
     QSplitter *splitter = new QSplitter(this);
     tableView = new QTableView(this);
     tableView->setModel(rightPartModel);
     splitter->addWidget(treeView);
     splitter->addWidget(tableView);
     setCentralWidget(splitter);
-
     QItemSelectionModel *selectionModel = treeView->selectionModel();
     treeView->header()->resizeSection(0, 200);
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::on_selectionChangedSlot);
@@ -50,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
     selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
 }
 
+
 void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
 {
     Q_UNUSED(deselected);
@@ -59,7 +58,9 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
     QString filePath = "";
 
     if (indexs.count() >= 1) {
-        statusBar()->showMessage("Выбранный путь : " + leftPartModel->filePath(indexs.constFirst()));
+        QModelIndex ix =  indexs.constFirst();
+        filePath = leftPartModel->filePath(ix);
+        this->statusBar()->showMessage("Выбранный путь : " + leftPartModel->filePath(indexs.constFirst()));
     }
     tableView->setRootIndex(rightPartModel->setRootPath(filePath));
 }

@@ -73,9 +73,6 @@ public:
         RegisterInstance<TInterface>(std::make_shared<TConcrete>(GetObject<TArguments>()...));
     }
 };
-
-IOCContainer gContainer;
-
 int IOCContainer::s_nextTypeId = 115094801;
 
 #endif // IOCCONTAINER_H
