@@ -1,8 +1,8 @@
 #ifndef ICHARTRENDERER_H
 #define ICHARTRENDERER_H
 
-#include <QtCharts/QChart>
-#include <QtCharts/QChartView>
+#include <QChart>
+#include <QChartView>
 #include <memory>
 #include "idataprovider.h"
 
