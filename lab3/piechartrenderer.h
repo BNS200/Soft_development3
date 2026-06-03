@@ -1,10 +1,18 @@
 #ifndef PIECHARTRENDERER_H
 #define PIECHARTRENDERER_H
 
-class piechartrenderer
-{
+#include "ichartrenderer.h"
+#include <QChart>
+#include <QPieSeries>
+
+
+class PieChartRenderer : public IChartRenderer {
 public:
-    piechartrenderer();
+    PieChartRenderer() = default;
+
+    QChart* createChart(const DataSet& data) override;
+    QString getChartType() const override;
+    void customizeChart(QChart* chart) override;
 };
 
 #endif // PIECHARTRENDERER_H
