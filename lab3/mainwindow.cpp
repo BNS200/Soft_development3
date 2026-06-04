@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
     , ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     this->setGeometry(100, 100, 1500, 500);
     this->setStatusBar(new QStatusBar(this));
     this->statusBar()->showMessage("Выбранный путь : ");
@@ -26,19 +27,21 @@ MainWindow::MainWindow(QWidget *parent)
 
     rightPartModel = new QFileSystemModel(this);
     rightPartModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-
     rightPartModel->setRootPath(homePath);
+
     treeView = new QTreeView(this);
     treeView->setModel(leftPartModel);
     treeView->expandAll();
-    QSplitter *splitter = new QSplitter(this);
+    treeView->header()->resizeSection(0, 200);
+
     tableView = new QTableView(this);
     tableView->setModel(rightPartModel);
+
+    QSplitter *splitter = new QSplitter(this);
     splitter->addWidget(treeView);
     splitter->addWidget(tableView);
     setCentralWidget(splitter);
     QItemSelectionModel *selectionModel = treeView->selectionModel();
-    treeView->header()->resizeSection(0, 200);
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::on_selectionChangedSlot);
 
     QItemSelection toggleSelection;
@@ -66,10 +69,43 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
 }
 
 
-
 MainWindow::~MainWindow()
 {
     delete ui;
 }
 
+void MainWindow::loadDataFromFile(const QString& filePath)
+{
+    m_currentFilePath = filePath;
+    QFileInfo fileInfo(filePath);
+    QString suffix = fileInfo.suffix().toLower();
+    m_statusLabel->setText("Загрузка: " + QFileInfo(filePath).fileName());
+    statusBar()->showMessage("Загрузка данных из: " + filePath);
+    QCoreApplication::processEvents();
 
+    std::shared_ptr<IDataProvider> provider;
+
+    if (suffix == "json"){
+        provider = std::make_shared<JSONDataAdapter>(filePath, "dd.MM.yyyy hh:mm");
+    }
+    else if (suffix == "sqlite") {
+        provider = std::make_shared<SQLiteAdapter>(filePath, "measurements", "Time", "Value", "dd.MM.yyyy hh:mm");
+    }
+    else {
+        m_statusLabel->setText("Ошибка: неподдерживаемый тип файла");
+        m_printButton->setEnabled(false);
+        return;
+    }
+
+    m_currentData = provider->getData();
+
+    if (m_currentData.isEmpty()) {
+        m_statusLabel->setText("Ошибка: нет данных в файле");
+        m_printButton->setEnabled(false);
+        statusBar()->showMessage("Нет данных в файле");
+    } else {
+        m_statusLabel->setText(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+        m_printButton->setEnabled(true);
+        statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+    }
+}
