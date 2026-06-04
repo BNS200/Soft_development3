@@ -1,10 +1,16 @@
 #ifndef GRAYSTYLE_H
 #define GRAYSTYLE_H
+#include "iprintstyle.h"
 
-class graystyle
-{
+
+class GrayStyle : public IPrintStyle {
 public:
-    graystyle();
+    GrayStyle() = default;
+
+    void configurePrinter(QPrinter& printer) override;
+    void configurePainter(QPainter& painter) override;
+    void customizeChart(QChart* chart) override;
+    QString getStyleName() const override;
 };
 
 #endif // GRAYSTYLE_H
