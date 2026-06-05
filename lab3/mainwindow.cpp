@@ -1,7 +1,6 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QSplitter>
 #include <QListView>
 #include <QTreeView>
 #include <QFileSystemModel>
@@ -108,4 +107,23 @@ void MainWindow::loadDataFromFile(const QString& filePath)
         m_printButton->setEnabled(true);
         statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
     }
+}
+
+void MainWindow::switchToChartMode()
+{
+    if (m_isChartMode) return;
+
+    m_savedSizeSplitter = m_splitter->sizes();
+
+    while (m_splitter->count()) {
+        m_splitter->widget(0)->setParent(nullptr);
+    }
+
+    m_splitter->addWidget(tableView);
+    m_splitter->addWidget(m_chartWidget);
+    m_splitter->setSizes(m_savedSizeSplitter);
+
+    m_isChartMode = true;
+    m_exitButton->setVisible(true);
+    statusBar()->showMessage("Режим графика. Нажмите 'Выход' для возврата");
 }

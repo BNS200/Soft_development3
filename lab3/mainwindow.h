@@ -8,7 +8,10 @@
 #include <QTableView>
 #include <QLabel>
 #include <QPushButton>
+#include <QSplitter>
 #include <memory>
+#include <QComboBox>
+
 #include "ioccontainer.h"
 #include "idataprovider.h"
 #include "ichartrenderer.h"
@@ -40,21 +43,33 @@ private slots:
 
 private:
     void loadDataFromFile(const QString& filePath);
-
+    void switchToChartMode();
 
 
     Ui::MainWindow *ui;
 
+    // MVC компоненты
     QFileSystemModel *rightPartModel;
     QFileSystemModel *leftPartModel;
     QTreeView *treeView;
     QTableView *tableView;
+    QSplitter *m_splitter;
 
+    //Данные
     DataSet m_currentData;
     QString m_currentFilePath;
 
+    QWidget* m_chartWidget;
+    QChartView* m_chartView;
+    QComboBox* m_chartTypeCombo;
+    QComboBox* m_styleCombo;
     QLabel* m_statusLabel;
+    QPushButton* m_exitButton;
     QPushButton* m_printButton;
+
+    bool m_isChartMode;
+    QList<int> m_savedSizeSplitter;
+
 
 
 };
