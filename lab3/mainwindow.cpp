@@ -127,3 +127,25 @@ void MainWindow::switchToChartMode()
     m_exitButton->setVisible(true);
     statusBar()->showMessage("Режим графика. Нажмите 'Выход' для возврата");
 }
+
+void MainWindow::onExitChartMode()
+{
+    if (!m_isChartMode) return;
+
+    while (m_splitter->count()) {
+        m_splitter->widget(0)->setParent(nullptr);
+    }
+
+    m_splitter->addWidget(treeView);
+    m_splitter->addWidget(tableView);
+
+    if (!m_savedSizeSplitter.isEmpty() && m_savedSizeSplitter.size() == 2) {
+        m_splitter->setSizes(m_savedSizeSplitter);
+    } else {
+        m_splitter->setSizes({400, this->width() - 400});
+    }
+
+    m_isChartMode = false;
+    m_exitButton->setVisible(false);
+    statusBar()->showMessage("Режим выбора файлов");
+}

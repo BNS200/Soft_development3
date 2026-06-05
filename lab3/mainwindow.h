@@ -44,6 +44,7 @@ private slots:
 private:
     void loadDataFromFile(const QString& filePath);
     void switchToChartMode();
+    void onExitChartMode();
 
 
     Ui::MainWindow *ui;
