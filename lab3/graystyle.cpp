@@ -1,6 +1,4 @@
 #include "graystyle.h"
-#include <QBrush>
-#include <QFont>
 
 void GrayStyle::configurePrinter(QPrinter& printer)
 {

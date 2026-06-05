@@ -1,13 +1,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QListView>
-#include <QTreeView>
-#include <QFileSystemModel>
-#include <QItemSelectionModel>
-#include <QTableView>
-#include <QHeaderView>
-#include <QStatusBar>
+
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)

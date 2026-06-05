@@ -1,5 +1,4 @@
 #include "barchartrenderer.h"
-#include <QDebug>
 
 QChart* BarChartRenderer::createChart(const DataSet& data)
 {

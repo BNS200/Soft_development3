@@ -3,14 +3,17 @@
 
 #include <QMainWindow>
 #include <QWidget>
-#include <QFileSystemModel>
 #include <QTreeView>
 #include <QTableView>
 #include <QLabel>
 #include <QPushButton>
 #include <QSplitter>
-#include <memory>
 #include <QComboBox>
+#include <QListView>
+#include <QFileSystemModel>
+#include <QItemSelectionModel>
+#include <QHeaderView>
+#include <QStatusBar>
 
 #include "ioccontainer.h"
 #include "idataprovider.h"

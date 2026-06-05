@@ -2,11 +2,7 @@
 #define BARCHARTRENDERER_H
 
 #include "ichartrenderer.h"
-#include <QChart>
-#include <QBarSeries>
-#include <QBarSet>
-#include <QBarCategoryAxis>
-#include <QValueAxis>
+
 
 
 class BarChartRenderer : public IChartRenderer {

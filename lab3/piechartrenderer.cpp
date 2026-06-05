@@ -1,5 +1,4 @@
 #include "piechartrenderer.h"
-#include <QDebug>
 
 QChart* PieChartRenderer::createChart(const DataSet& data)
 {

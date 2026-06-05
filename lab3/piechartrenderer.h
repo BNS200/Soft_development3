@@ -2,8 +2,7 @@
 #define PIECHARTRENDERER_H
 
 #include "ichartrenderer.h"
-#include <QChart>
-#include <QPieSeries>
+
 
 
 class PieChartRenderer : public IChartRenderer {

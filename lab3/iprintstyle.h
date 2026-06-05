@@ -4,6 +4,8 @@
 #include <QPrinter>
 #include <QChart>
 #include <QChartView>
+#include <QBrush>
+#include <QFont>
 
 
 

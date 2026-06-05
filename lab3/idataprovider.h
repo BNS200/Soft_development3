@@ -4,6 +4,14 @@
 #include <QList>
 #include <QDateTime>
 #include <QString>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+#include <QDebug>
+#include <QFile>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 
 struct DataPoint {
     QDateTime date;

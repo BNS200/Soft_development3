@@ -1,6 +1,5 @@
 #include "colorstyle.h"
-#include <QBrush>
-#include <QFont>
+
 
 void ColorStyle::configurePrinter(QPrinter& printer)
 {

@@ -2,11 +2,6 @@
 #define JSONADAPTER_H
 
 #include "idataprovider.h"
-#include <QFile>
-#include <QJsonDocument>
-#include <QJsonArray>
-#include <QJsonObject>
-#include <QDebug>
 
 
 class JSONDataAdapter : public IDataProvider {

@@ -1,9 +1,15 @@
 #ifndef ICHARTRENDERER_H
 #define ICHARTRENDERER_H
 
-#include <QChart>
 #include <QChartView>
 #include <memory>
+#include <QChart>
+#include <QBarSeries>
+#include <QBarSet>
+#include <QBarCategoryAxis>
+#include <QValueAxis>
+#include <QDebug>
+#include <QPieSeries>
 #include "idataprovider.h"
 
 

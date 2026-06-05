@@ -1,10 +1,7 @@
 #ifndef SQLITEADAPTER_H
 #define SQLITEADAPTER_H
 #include "idataprovider.h"
-#include <QSqlDatabase>
-#include <QSqlQuery>
-#include <QSqlError>
-#include <QDebug>
+
 
 
 class SQLiteAdapter : public IDataProvider {

@@ -60,6 +60,13 @@ public:
         m_factories[GetTypeID<TInterface>()] = std::make_shared<CFactory<TInterface>>([ = ] { return t; });
     }
 
+    template<typename TInterface>
+    void RegisterInstance(TInterface t) {
+        m_factories[GetTypeID<TInterface>()] = std::make_shared<CFactory<TInterface>>(
+            [ = ] { return std::make_shared<TInterface>(t); }
+            );
+    }
+
     template<typename TInterface, typename TConcrete, typename... TArguments>
     void RegisterFactory() {
         RegisterFunctor(std::function<std::shared_ptr<TInterface>(std::shared_ptr<TArguments>... ts)>(
@@ -73,6 +80,5 @@ public:
         RegisterInstance<TInterface>(std::make_shared<TConcrete>(GetObject<TArguments>()...));
     }
 };
-int IOCContainer::s_nextTypeId = 115094801;
 
 #endif // IOCCONTAINER_H
