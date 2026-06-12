@@ -8,12 +8,20 @@
 #include <QTableView>
 #include <QHeaderView>
 #include <QStatusBar>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , m_chartView(nullptr)
+    , m_isChartMode(false)
+    , m_splitter(nullptr)
+    , m_chartWidget(nullptr)
 {
     ui->setupUi(this);
+
+    registerDependencies();
 
     this->setGeometry(100, 100, 1500, 500);
     this->setStatusBar(new QStatusBar(this));
@@ -36,18 +44,22 @@ MainWindow::MainWindow(QWidget *parent)
     tableView = new QTableView(this);
     tableView->setModel(rightPartModel);
 
-    QSplitter *splitter = new QSplitter(this);
-    splitter->addWidget(treeView);
-    splitter->addWidget(tableView);
-    setCentralWidget(splitter);
+    m_splitter = new QSplitter(this);
+    m_splitter->addWidget(treeView);
+    m_splitter->addWidget(tableView);
+    setCentralWidget(m_splitter);
+
     QItemSelectionModel *selectionModel = treeView->selectionModel();
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::on_selectionChangedSlot);
 
+
     QItemSelection toggleSelection;
-    QModelIndex topLeft;
-    topLeft = leftPartModel->index(homePath);
+    QModelIndex topLeft = leftPartModel->index(homePath);
     toggleSelection.select(topLeft, topLeft);
     selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
+
+    onChartTypeChanged(0);
+    onStyleChanged(0);
 }
 
 void MainWindow::registerDependencies()
@@ -80,6 +92,23 @@ void MainWindow::onStyleChanged(int index)
         m_currentStyle = m_container.GetObject<IPrintStyle>("Color");
     } else {
         m_currentStyle = m_container.GetObject<IPrintStyle>("Gray");
+    }
+}
+
+void MainWindow::onFileSelectedForChart(const QModelIndex &index)
+{
+    if (!index.isValid()) return;
+
+    QString filePath = rightPartModel->filePath(index);
+    QFileInfo fileInfo(filePath);
+    QString suffix = fileInfo.suffix().toLower();
+
+    if (suffix == "json" || suffix == "db" || suffix == "sqlite") {
+        loadDataFromFile(filePath);
+        statusBar()->showMessage("Выбран файл: " + fileInfo.fileName());
+    } else {
+        statusBar()->showMessage("Ошибка: выберите JSON или SQLite файл");
+        m_printButton->setEnabled(false);
     }
 }
 

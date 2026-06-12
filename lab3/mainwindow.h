@@ -52,6 +52,7 @@ private:
     void registerDependencies();
     void onStyleChanged(int index);
     void onChartTypeChanged(int index);
+    void onFileSelectedForChart(const QModelIndex &index);
 
 
     Ui::MainWindow *ui;
