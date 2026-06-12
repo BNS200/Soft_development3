@@ -14,4 +14,4 @@ public:
 };
 
 #endif // COLORSTYLE_H
-x
+

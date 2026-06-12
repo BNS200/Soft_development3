@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 
+int IOCContainer::s_nextTypeId = 115094801;
 
 int main(int argc, char *argv[])
 {

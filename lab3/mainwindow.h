@@ -15,7 +15,11 @@
 #include "ioccontainer.h"
 #include "idataprovider.h"
 #include "ichartrenderer.h"
+#include "barchartrenderer.h"
+#include "piechartrenderer.h"
 #include "iprintstyle.h"
+#include "colorstyle.h"
+#include "graystyle.h"
 #include "jsonadapter.h"
 #include "sqliteadapter.h"
 
@@ -45,6 +49,9 @@ private:
     void loadDataFromFile(const QString& filePath);
     void switchToChartMode();
     void onExitChartMode();
+    void registerDependencies();
+    void onStyleChanged(int index);
+    void onChartTypeChanged(int index);
 
 
     Ui::MainWindow *ui;
@@ -71,6 +78,10 @@ private:
     bool m_isChartMode;
     QList<int> m_savedSizeSplitter;
 
+    IOCContainer m_container;
+
+    std::shared_ptr<IChartRenderer> m_currentRenderer;
+    std::shared_ptr<IPrintStyle> m_currentStyle;
 
 
 };

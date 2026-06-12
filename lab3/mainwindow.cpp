@@ -50,6 +50,38 @@ MainWindow::MainWindow(QWidget *parent)
     selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
 }
 
+void MainWindow::registerDependencies()
+{
+    m_container.RegisterInstance<IChartRenderer>("BarChart", std::make_shared<BarChartRenderer>());
+    m_container.RegisterInstance<IChartRenderer>("PieChart", std::make_shared<PieChartRenderer>());
+
+    m_container.RegisterInstance<IPrintStyle>("Color", std::make_shared<ColorStyle>());
+    m_container.RegisterInstance<IPrintStyle>("Gray", std::make_shared<GrayStyle>());
+}
+
+void MainWindow::onChartTypeChanged(int index)
+{
+    Q_UNUSED(index);
+    QString chartType = m_chartTypeCombo->currentData().toString();
+
+    if (chartType == "BarChart") {
+        m_currentRenderer = m_container.GetObject<IChartRenderer>("BarChart");
+    } else if (chartType == "PieChart") {
+        m_currentRenderer = m_container.GetObject<IChartRenderer>("PieChart");
+    }
+}
+
+void MainWindow::onStyleChanged(int index)
+{
+    Q_UNUSED(index);
+    QString styleType = m_styleCombo->currentData().toString();
+
+    if (styleType == "Color") {
+        m_currentStyle = m_container.GetObject<IPrintStyle>("Color");
+    } else {
+        m_currentStyle = m_container.GetObject<IPrintStyle>("Gray");
+    }
+}
 
 void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected)
 {
@@ -107,6 +139,8 @@ void MainWindow::loadDataFromFile(const QString& filePath)
         m_printButton->setEnabled(true);
         statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
     }
+    switchToChartMode();
+
 }
 
 void MainWindow::switchToChartMode()
