@@ -22,6 +22,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi(this);
 
     registerDependencies();
+    setupChartArea();
 
     this->setGeometry(100, 100, 1500, 500);
     this->setStatusBar(new QStatusBar(this));
@@ -52,6 +53,9 @@ MainWindow::MainWindow(QWidget *parent)
     QItemSelectionModel *selectionModel = treeView->selectionModel();
     connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::on_selectionChangedSlot);
 
+    connect(tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onFileSelectedForChart);
+    connect(m_exitButton, &QPushButton::clicked, this, &MainWindow::onExitChartMode);
+
 
     QItemSelection toggleSelection;
     QModelIndex topLeft = leftPartModel->index(homePath);
@@ -81,6 +85,10 @@ void MainWindow::onChartTypeChanged(int index)
     } else if (chartType == "PieChart") {
         m_currentRenderer = m_container.GetObject<IChartRenderer>("PieChart");
     }
+
+    if (!m_currentData.isEmpty()) {
+        updateChart();
+    }
 }
 
 void MainWindow::onStyleChanged(int index)
@@ -92,6 +100,10 @@ void MainWindow::onStyleChanged(int index)
         m_currentStyle = m_container.GetObject<IPrintStyle>("Color");
     } else {
         m_currentStyle = m_container.GetObject<IPrintStyle>("Gray");
+    }
+
+    if (!m_currentData.isEmpty()) {
+        updateChart();
     }
 }
 
@@ -169,6 +181,8 @@ void MainWindow::loadDataFromFile(const QString& filePath)
         statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
     }
     switchToChartMode();
+    updateChart();
+
 
 }
 
@@ -211,4 +225,58 @@ void MainWindow::onExitChartMode()
     m_isChartMode = false;
     m_exitButton->setVisible(false);
     statusBar()->showMessage("Режим выбора файлов");
+}
+
+void MainWindow::updateChart()
+{
+    if (m_currentData.isEmpty() || !m_currentRenderer) return;
+
+    QChart* chart = m_currentRenderer->createChart(m_currentData);
+    m_currentStyle->customizeChart(chart);
+
+    m_chartView->setChart(chart);
+}
+
+void MainWindow::setupChartArea()
+{
+    m_chartWidget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(m_chartWidget);
+
+    QHBoxLayout* controlLayout = new QHBoxLayout();
+
+    QLabel* chartTypeLabel = new QLabel("Тип графика:");
+    m_chartTypeCombo = new QComboBox();
+    m_chartTypeCombo->addItem("Столбчатая диаграмма", "BarChart");
+    m_chartTypeCombo->addItem("Круговая диаграмма", "PieChart");
+
+    QLabel* styleLabel = new QLabel("Стиль печати:");
+    m_styleCombo = new QComboBox();
+    m_styleCombo->addItem("Цветной", "Color");
+    m_styleCombo->addItem("Черно-белый", "Gray");
+
+    m_printButton = new QPushButton("Печать в PDF");
+    m_printButton->setEnabled(false);
+
+    m_exitButton = new QPushButton("Выход");
+    m_exitButton->setVisible(false);
+
+    controlLayout->addWidget(chartTypeLabel);
+    controlLayout->addWidget(m_chartTypeCombo);
+    controlLayout->addWidget(styleLabel);
+    controlLayout->addWidget(m_styleCombo);
+    controlLayout->addWidget(m_printButton);
+    controlLayout->addWidget(m_exitButton);
+
+    m_chartView = new QChartView();
+    m_chartView->setRenderHint(QPainter::Antialiasing);
+
+    m_statusLabel = new QLabel("Выберите JSON или SQLite файл");
+    m_statusLabel->setAlignment(Qt::AlignCenter);
+
+    layout->addLayout(controlLayout);
+    layout->addWidget(m_chartView);
+    layout->addWidget(m_statusLabel);
+
+    connect(m_chartTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onChartTypeChanged);
+    connect(m_styleCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onStyleChanged);
 }

@@ -53,6 +53,8 @@ private:
     void onStyleChanged(int index);
     void onChartTypeChanged(int index);
     void onFileSelectedForChart(const QModelIndex &index);
+    void updateChart();
+    void setupChartArea();
 
 
     Ui::MainWindow *ui;
