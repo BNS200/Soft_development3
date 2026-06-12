@@ -28,8 +28,7 @@ private:
     double m_speed;
 
 public:
-    IntelProcessor(double speed, ProcessorType type, std::string version) : m_speed(speed), m_type(type), m_version(version){}
-
+    IntelProcessor(std::shared_ptr<double> speed, std::shared_ptr<ProcessorType> type, std::shared_ptr<std::string> version) : m_speed(*speed), m_type(*type), m_version(*version) {}
     std::string GetProcessorInfo() const override
     {
         std::string typeStr = (m_type == x86) ? "x86" : "x86_64";
@@ -55,7 +54,7 @@ private:
     double m_speed;
 
 public:
-    AMDProcessor(double speed, ProcessorType type, std::string version) : m_speed(speed), m_type(type), m_version(version){}
+    AMDProcessor(std::shared_ptr<double> speed, std::shared_ptr<ProcessorType> type, std::shared_ptr<std::string> version) : m_speed(*speed), m_type(*type), m_version(*version) {}
 
     std::string GetProcessorInfo() const override
     {
@@ -105,13 +104,19 @@ IOCContainer gContainer;
 
 std::shared_ptr<IProcessor> CreateIntelProcessor()
 {
-    return make_shared<IntelProcessor>(3.4, x86_64, "Core i7-12700K");
-}
+    return std::make_shared<IntelProcessor>(
+        std::make_shared<double>(3.4),
+        std::make_shared<ProcessorType>(x86_64),
+        std::make_shared<std::string>("Core i7-12700K")
+        );}
 
 std::shared_ptr<IProcessor> CreateAMDProcessor()
 {
-    return make_shared<AMDProcessor>(4.0, x86_64, "Ryzen 7 5800X");
-}
+    return std::make_shared<AMDProcessor>(
+        std::make_shared<double>(4.0),
+        std::make_shared<ProcessorType>(x86_64),
+        std::make_shared<std::string>("Ryzen 7 5800X")
+        );}
 
 void RegisterIntel()
 {

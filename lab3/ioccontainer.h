@@ -63,7 +63,7 @@ public:
     template<typename TInterface>
     void RegisterInstance(TInterface t) {
         m_factories[GetTypeID<TInterface>()] = std::make_shared<CFactory<TInterface>>(
-            [ = ] { return std::make_shared<TInterface>(t); }
+            [ = ] { return t; }
             );
     }
 
