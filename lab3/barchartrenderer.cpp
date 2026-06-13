@@ -11,15 +11,38 @@ QChart* BarChartRenderer::createChart(const DataSet& data)
     chart->setTitle(QString("Bar Chart "));
 
     QBarSeries* series = new QBarSeries();
-    QBarSet* barSet = new QBarSet("Values");
+
+    QList<QColor> colors = {
+        Qt::red,
+        Qt::green,
+        Qt::blue,
+        Qt::cyan,
+        Qt::magenta,
+        Qt::yellow,
+        Qt::darkRed,
+        Qt::darkGreen,
+        Qt::darkBlue,
+        Qt::darkCyan,
+        Qt::darkMagenta,
+        Qt::darkYellow,
+        Qt::gray,
+        Qt::lightGray,
+        Qt::darkGray
+    };
 
     QStringList categories;
-    for (const DataPoint& point : data) {
+
+    for (int i = 0; i < data.size(); ++i) {
+        const DataPoint& point = data[i];
+
+        QBarSet* barSet = new QBarSet(point.label);
         *barSet << point.value;
-        categories << point.label;
+
+        barSet->setColor(colors[i % colors.size()]);
+
+        series->append(barSet);
     }
 
-    series->append(barSet);
     chart->addSeries(series);
 
     QBarCategoryAxis* axisX = new QBarCategoryAxis();

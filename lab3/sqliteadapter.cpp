@@ -22,11 +22,10 @@ DataSet SQLiteAdapter::getData() const
     db.setDatabaseName(m_dbPath);
 
     if (!db.open()) {
-        qDebug() << "Cannot open database:" << m_dbPath;
         return result;
     }
 
-    QString queryValue = QString("SELECT %1, %2 FROM %3 ORDER BY %1").arg(m_dateColumn, m_valueColumn, m_tableName);
+    QString queryValue = QString("SELECT %1, %2 FROM %3 ORDER BY %1 LIMIT 200").arg(m_dateColumn, m_valueColumn, m_tableName);
 
     QSqlQuery query(db);
 
@@ -44,7 +43,6 @@ DataSet SQLiteAdapter::getData() const
         point.date = QDateTime::fromString(dateStr, m_dateFormat);
 
         if (!point.date.isValid()) {
-            qDebug() << "Failed to parse date";
         }
 
         point.value = query.value(1).toDouble();
@@ -58,4 +56,27 @@ DataSet SQLiteAdapter::getData() const
     QSqlDatabase::removeDatabase("qt_sql_default_connection");
 
     return result;
+}
+
+QStringList SQLiteAdapter::getTableList(const QString& filePath)
+{
+    QStringList tables;
+
+    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
+    db.setDatabaseName(filePath);
+
+    if (!db.open()) {
+        return tables;
+    }
+
+    QSqlQuery query("SELECT name FROM sqlite_master WHERE type='table'");
+
+    while (query.next()) {
+        tables << query.value(0).toString();
+    }
+
+    db.close();
+    QSqlDatabase::removeDatabase("qt_sql_default_connection");
+
+    return tables;
 }

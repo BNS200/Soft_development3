@@ -55,6 +55,7 @@ private:
     void onFileSelectedForChart(const QModelIndex &index);
     void updateChart();
     void setupChartArea();
+    void onPrintButtonClicked();
 
 
     Ui::MainWindow *ui;

@@ -21,6 +21,8 @@ public:
     DataSet getData() const override;
     QString getSourceName() const override;
     QString getDescription() const override;
+
+    static QStringList getTableList(const QString& filePath);
 };
 
 #endif // SQLITEADAPTER_H

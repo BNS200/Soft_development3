@@ -12,8 +12,29 @@ QChart* PieChartRenderer::createChart(const DataSet& data)
 
     QPieSeries* series = new QPieSeries();
 
+    QList<QColor> colors = {
+        Qt::red,
+        Qt::green,
+        Qt::blue,
+        Qt::cyan,
+        Qt::magenta,
+        Qt::yellow,
+        Qt::darkRed,
+        Qt::darkGreen,
+        Qt::darkBlue,
+        Qt::darkCyan,
+        Qt::darkMagenta,
+        Qt::darkYellow,
+        Qt::gray,
+        Qt::lightGray,
+        Qt::darkGray
+    };
+
+    int i = 0;
     for (const DataPoint& point : data) {
-        series->append(point.label, point.value);
+        QPieSlice* slice = series->append(point.label, point.value);
+        slice->setColor(colors[i % colors.size()]);
+        i++;
     }
 
     chart->addSeries(series);

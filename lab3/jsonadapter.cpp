@@ -18,7 +18,6 @@ DataSet JSONDataAdapter::getData() const
 
     QFile file(m_filePath);
     if (!file.open(QIODevice::ReadOnly)) {
-        qDebug() << "Cannot open JSON file:" << m_filePath;
         return result;
     }
 
@@ -26,7 +25,6 @@ DataSet JSONDataAdapter::getData() const
     QJsonDocument doc = QJsonDocument::fromJson(jsonData);
 
     if (doc.isNull()) {
-        qDebug() << "Invalid JSON format in file:" << m_filePath;
         file.close();
         return result;
     }

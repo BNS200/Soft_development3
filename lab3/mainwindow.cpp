@@ -10,6 +10,9 @@
 #include <QStatusBar>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
+#include <QMessageBox>
+#include <QFileDialog>
+#include <QInputDialog>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -55,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     connect(tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onFileSelectedForChart);
     connect(m_exitButton, &QPushButton::clicked, this, &MainWindow::onExitChartMode);
+    connect(m_printButton, &QPushButton::clicked, this, &MainWindow::onPrintButtonClicked);
 
 
     QItemSelection toggleSelection;
@@ -109,7 +113,8 @@ void MainWindow::onStyleChanged(int index)
 
 void MainWindow::onFileSelectedForChart(const QModelIndex &index)
 {
-    if (!index.isValid()) return;
+    if (!index.isValid())
+        return;
 
     QString filePath = rightPartModel->filePath(index);
     QFileInfo fileInfo(filePath);
@@ -120,6 +125,7 @@ void MainWindow::onFileSelectedForChart(const QModelIndex &index)
         statusBar()->showMessage("Выбран файл: " + fileInfo.fileName());
     } else {
         statusBar()->showMessage("Ошибка: выберите JSON или SQLite файл");
+        QMessageBox::warning(this, "Ошибка", "Неподдерживаемый тип файла.\nВыберите JSON или SQLite файл.");
         m_printButton->setEnabled(false);
     }
 }
@@ -161,9 +167,26 @@ void MainWindow::loadDataFromFile(const QString& filePath)
         provider = std::make_shared<JSONDataAdapter>(filePath, "dd.MM.yyyy hh:mm");
     }
     else if (suffix == "sqlite") {
-        provider = std::make_shared<SQLiteAdapter>(filePath, "measurements", "Time", "Value", "dd.MM.yyyy hh:mm");
-    }
-    else {
+        QStringList tables = SQLiteAdapter::getTableList(filePath);
+        if (tables.isEmpty()) {
+            QMessageBox::warning(this, "Ошибка", "В базе данных нет таблиц");
+            return;
+        }
+
+        QString tableName;
+        if (tables.size() == 1) {
+            tableName = tables.first();
+        } else {
+            bool ok;
+            tableName = QInputDialog::getItem(this, "Выбор таблицы", "Выберите таблицу с данными:", tables, 0, false, &ok);
+            if (!ok)
+                return;
+        }
+
+        provider = std::make_shared<SQLiteAdapter>(filePath, tableName, "Time", "Value", "dd.MM.yyyy hh:mm");
+
+    } else {
+        QMessageBox::warning(this, "Ошибка", "Неподдерживаемый тип файла");
         m_statusLabel->setText("Ошибка: неподдерживаемый тип файла");
         m_printButton->setEnabled(false);
         return;
@@ -172,6 +195,7 @@ void MainWindow::loadDataFromFile(const QString& filePath)
     m_currentData = provider->getData();
 
     if (m_currentData.isEmpty()) {
+        QMessageBox::warning(this, "Ошибка", "В файле нет данных или файл имеет неверный формат.\n" + filePath);
         m_statusLabel->setText("Ошибка: нет данных в файле");
         m_printButton->setEnabled(false);
         statusBar()->showMessage("Нет данных в файле");
@@ -182,7 +206,6 @@ void MainWindow::loadDataFromFile(const QString& filePath)
     }
     switchToChartMode();
     updateChart();
-
 
 }
 
@@ -229,11 +252,19 @@ void MainWindow::onExitChartMode()
 
 void MainWindow::updateChart()
 {
-    if (m_currentData.isEmpty() || !m_currentRenderer) return;
+    if (m_currentData.isEmpty() || !m_currentRenderer) {
+        QMessageBox::warning(this, "Ошибка", "Нет данных");
+        return;
+    }
 
     QChart* chart = m_currentRenderer->createChart(m_currentData);
-    m_currentStyle->customizeChart(chart);
 
+    if (!chart) {
+        QMessageBox::warning(this, "Ошибка", "Не удалось создать график");
+        return;
+    }
+
+    m_currentStyle->customizeChart(chart);
     m_chartView->setChart(chart);
 }
 
@@ -279,4 +310,42 @@ void MainWindow::setupChartArea()
 
     connect(m_chartTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onChartTypeChanged);
     connect(m_styleCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onStyleChanged);
+}
+
+void MainWindow::onPrintButtonClicked()
+{
+    if (m_currentData.isEmpty()) {
+        QMessageBox::warning(this, "Ошибка", "Нет данных для печати");
+        return;
+    }
+
+    QString fileName = QFileDialog::getSaveFileName(this, "Сохранить PDF", QDir::homePath() + "/chart.pdf", "PDF файлы (*.pdf)");
+    if (fileName.isEmpty()) return;
+
+    QChart* chart = m_currentRenderer->createChart(m_currentData);
+
+    if (!chart) {
+        QMessageBox::warning(this, "Ошибка", "Не удалось создать график для печати");
+        return;
+    }
+
+    m_currentStyle->customizeChart(chart);
+
+    QChartView tempView;
+    tempView.setChart(chart);
+    tempView.resize(1200, 800);
+    // QCoreApplication::processEvents();
+
+    QPrinter printer;
+    m_currentStyle->configurePrinter(printer);
+    printer.setOutputFormat(QPrinter::PdfFormat);
+    printer.setOutputFileName(fileName);
+
+    QPainter painter(&printer);
+    tempView.render(&painter);
+
+    delete chart;
+
+    statusBar()->showMessage("PDF сохранен: " + QFileInfo(fileName).fileName());
+    QMessageBox::information(this, "Успех", "График сохранен в PDF");
 }
