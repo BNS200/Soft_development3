@@ -163,6 +163,7 @@ void MainWindow::loadDataFromFile(const QString& filePath)
 
     std::shared_ptr<IDataProvider> provider;
 
+
     if (suffix == "json"){
         provider = std::make_shared<JSONDataAdapter>(filePath, "dd.MM.yyyy hh:mm");
     }
@@ -192,21 +193,31 @@ void MainWindow::loadDataFromFile(const QString& filePath)
         return;
     }
 
-    m_currentData = provider->getData();
+    try {
+        m_currentData = provider->getData();
 
-    if (m_currentData.isEmpty()) {
-        QMessageBox::warning(this, "Ошибка", "В файле нет данных или файл имеет неверный формат.\n" + filePath);
-        m_statusLabel->setText("Ошибка: нет данных в файле");
+
+        if (m_currentData.isEmpty()) {
+            QMessageBox::warning(this, "Ошибка", "В файле нет данных или файл имеет неверный формат.\n" + filePath);
+            m_statusLabel->setText("Ошибка: нет данных в файле");
+            m_printButton->setEnabled(false);
+            statusBar()->showMessage("Нет данных в файле");
+            return;
+
+        } else {
+            m_statusLabel->setText(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+            m_printButton->setEnabled(true);
+            statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+        }
+        switchToChartMode();
+        updateChart();
+
+    } catch (const std::exception& e){
+        QMessageBox::warning(this, "Ошибка загрузки данных", e.what());
+        m_statusLabel->setText("Ошибка: неверный формат данных");
         m_printButton->setEnabled(false);
-        statusBar()->showMessage("Нет данных в файле");
-    } else {
-        m_statusLabel->setText(QString("Загружено %1 точек данных").arg(m_currentData.size()));
-        m_printButton->setEnabled(true);
-        statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+        m_currentData.clear();
     }
-    switchToChartMode();
-    updateChart();
-
 }
 
 void MainWindow::switchToChartMode()
@@ -334,7 +345,6 @@ void MainWindow::onPrintButtonClicked()
     QChartView tempView;
     tempView.setChart(chart);
     tempView.resize(1200, 800);
-    // QCoreApplication::processEvents();
 
     QPrinter printer;
     m_currentStyle->configurePrinter(printer);

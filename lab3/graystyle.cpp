@@ -1,6 +1,9 @@
 #include "graystyle.h"
 #include <QBrush>
 #include <QFont>
+#include <QBarSeries>
+#include <QBarSet>
+#include <QPieSeries>
 
 void GrayStyle::configurePrinter(QPrinter& printer)
 {
@@ -21,7 +24,7 @@ void GrayStyle::customizeChart(QChart* chart)
 {
     if (!chart) return;
 
-    chart->setTheme(QChart::ChartThemeDark);
+    // chart->setTheme(QChart::ChartThemeDark);
 
     chart->setBackgroundBrush(QBrush(Qt::white));
     chart->setBackgroundVisible(true);
@@ -34,6 +37,32 @@ void GrayStyle::customizeChart(QChart* chart)
     titleFont.setBold(true);
     titleFont.setPointSize(14);
     chart->setTitleFont(titleFont);
+
+
+    QList<QAbstractSeries*> seriesList = chart->series();
+    for (QAbstractSeries* series : seriesList) {
+        if (QBarSeries* barSeries = qobject_cast<QBarSeries*>(series)) {
+            for (QBarSet* barSet : barSeries->barSets()) {
+                barSet->setColor(Qt::darkGray);
+                barSet->setBorderColor(Qt::black);
+                barSet->setLabelColor(Qt::black);
+            }
+        } else if (QPieSeries* pieSeries = qobject_cast<QPieSeries*>(series)) {
+            for (QPieSlice* slice : pieSeries->slices()) {
+                slice->setBrush(QBrush(Qt::darkGray));
+                slice->setLabelColor(Qt::black);
+                slice->setBorderColor(Qt::black);
+            }
+        }
+    }
+
+    if (!chart->axes().isEmpty()) {
+        for (QAbstractAxis* axis : chart->axes()) {
+            axis->setLabelsVisible(true);
+            axis->setLabelsVisible(true);
+            axis->setLabelsColor(Qt::black);
+        }
+    }
 }
 
 QString GrayStyle::getStyleName() const
