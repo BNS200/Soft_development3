@@ -44,8 +44,6 @@ public:
 
 private slots:
     void on_selectionChangedSlot(const QItemSelection &selected, const QItemSelection &deselected);
-
-private:
     void loadDataFromFile(const QString& filePath);
     void switchToChartMode();
     void onExitChartMode();
@@ -57,7 +55,7 @@ private:
     void setupChartArea();
     void onPrintButtonClicked();
 
-
+private:
     Ui::MainWindow *ui;
 
     // MVC компоненты

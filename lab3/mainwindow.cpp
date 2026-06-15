@@ -281,7 +281,8 @@ void MainWindow::loadDataFromFile(const QString& filePath)
             if (m_statusLabel) {
                 m_statusLabel->setText("Ошибка: нет данных в файле");
             }
-            if (m_printButton) m_printButton->setEnabled(false);
+            if (m_printButton)
+                m_printButton->setEnabled(false);
             if (statusBar()) {
                 statusBar()->showMessage("Нет данных в файле");
             }
@@ -291,7 +292,8 @@ void MainWindow::loadDataFromFile(const QString& filePath)
             if (m_statusLabel) {
                 m_statusLabel->setText(QString("Загружено %1 точек данных").arg(m_currentData.size()));
             }
-            if (m_printButton) m_printButton->setEnabled(true);
+            if (m_printButton)
+                m_printButton->setEnabled(true);
             if (statusBar()) {
                 statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
             }
@@ -430,7 +432,8 @@ void MainWindow::setupChartArea()
         return;
 
     QLabel* chartTypeLabel = new QLabel("Тип графика:");
-    if (chartTypeLabel) controlLayout->addWidget(chartTypeLabel);
+    if (chartTypeLabel)
+        controlLayout->addWidget(chartTypeLabel);
 
     m_chartTypeCombo = new QComboBox();
     if (m_chartTypeCombo) {
@@ -440,7 +443,8 @@ void MainWindow::setupChartArea()
     }
 
     QLabel* styleLabel = new QLabel("Стиль печати:");
-    if (styleLabel) controlLayout->addWidget(styleLabel);
+    if (styleLabel)
+        controlLayout->addWidget(styleLabel);
 
     m_styleCombo = new QComboBox();
     if (m_styleCombo) {
