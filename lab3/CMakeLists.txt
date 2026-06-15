@@ -36,6 +36,15 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graystyle.h graystyle.cpp
         jsonadapter.h jsonadapter.cpp
         sqliteadapter.h sqliteadapter.cpp
+        test.json
+        DateNull.json
+        ExtraField.json
+        NoVal.json
+        ValNull.json
+        HUMIDITY_MOSCOW_noColumn.sqlite
+        NORDPOOL_NullVal.sqlite
+        PRICES_ExtraField.sqlite
+        TEMPERATURE_WrongDate.sqlite
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET lab3 APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
