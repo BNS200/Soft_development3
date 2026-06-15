@@ -49,7 +49,7 @@ DataSet SQLiteAdapter::getData() const
         throw std::runtime_error(QString("Колонка '%1' не найдена в таблице '%2'").arg(m_valueColumn, m_tableName).toStdString());
     }
 
-    QString queryValue = QString("SELECT %1, %2 FROM %3 ORDER BY %1 LIMIT 200").arg(m_dateColumn, m_valueColumn, m_tableName);
+    QString queryValue = QString("SELECT %1, %2 FROM %3 ORDER BY %1 LIMIT 10").arg(m_dateColumn, m_valueColumn, m_tableName);
 
     QSqlQuery query(db);
 
@@ -63,6 +63,12 @@ DataSet SQLiteAdapter::getData() const
     while (query.next()) {
         DataPoint point;
 
+        if (query.value(0).isNull()) {
+            db.close();
+            QSqlDatabase::removeDatabase("qt_sql_default_connection");
+            throw std::runtime_error(QString("NULL значение в колонке '%1' в строке %2").arg(m_dateColumn).arg(rowCount + 1).toStdString());
+        }
+
         QString dateStr = query.value(0).toString();
         point.date = QDateTime::fromString(dateStr, m_dateFormat);
 
@@ -70,6 +76,20 @@ DataSet SQLiteAdapter::getData() const
             db.close();
             QSqlDatabase::removeDatabase("qt_sql_default_connection");
             throw std::runtime_error(QString("Неверный формат даты в строке %1:").arg(rowCount + 1).arg(dateStr).toStdString());
+        }
+
+        if (query.value(1).isNull()) {
+            db.close();
+            QSqlDatabase::removeDatabase("qt_sql_default_connection");
+            throw std::runtime_error(QString("NULL значение в колонке '%1' в строке %2").arg(m_valueColumn).arg(rowCount + 1).toStdString());
+        }
+
+        bool ok;
+        double val = query.value(1).toDouble(&ok);
+        if (!ok) {
+            db.close();
+            QSqlDatabase::removeDatabase("qt_sql_default_connection");
+            throw std::runtime_error(QString("Значение в колонке '%1' в строке %2 не является числом: '%3'").arg(m_valueColumn).arg(rowCount + 1).toStdString());
         }
 
         point.value = query.value(1).toDouble();

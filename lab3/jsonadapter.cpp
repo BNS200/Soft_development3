@@ -59,6 +59,16 @@ DataSet JSONDataAdapter::getData() const
             throw std::runtime_error(QString("Отсутствует поле 'value' в строке %1").arg(i + 1).toStdString());
         }
 
+        if (obj["value"].isNull()) {
+            file.close();
+            throw std::runtime_error(QString("Поле 'value' в строке %1 равно null").arg(i + 1).toStdString());
+        }
+
+        if (!obj["value"].isDouble()) {
+            file.close();
+            throw std::runtime_error(QString("Поле 'value' в строке %1 не является числом").arg(i + 1).toStdString());
+        }
+
         point.value = obj["value"].toDouble();
 
         if (obj.contains("label")) {

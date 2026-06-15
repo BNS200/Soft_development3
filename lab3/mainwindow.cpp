@@ -1,4 +1,3 @@
-
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QListView>
@@ -21,7 +20,18 @@ MainWindow::MainWindow(QWidget *parent)
     , m_isChartMode(false)
     , m_splitter(nullptr)
     , m_chartWidget(nullptr)
+    , m_currentRenderer(nullptr)
+    , m_currentStyle(nullptr)
+    , m_exitButton(nullptr)
+    , m_printButton(nullptr)
+    , m_statusLabel(nullptr)
+    , m_chartTypeCombo(nullptr)
+    , m_styleCombo(nullptr)
 {
+    if (!ui) {
+        QMessageBox::warning(this, "Ошибка", "Не удалось создать UI");
+        return;
+    }
     ui->setupUi(this);
 
     registerDependencies();
@@ -29,45 +39,75 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->setGeometry(100, 100, 1500, 500);
     this->setStatusBar(new QStatusBar(this));
-    this->statusBar()->showMessage("Выбранный путь : ");
+    if (this->statusBar()) {
+        this->statusBar()->showMessage("Выбранный путь : ");
+    }
     QString homePath = QDir::homePath();
 
-    leftPartModel =  new QFileSystemModel(this);
-    leftPartModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
-    leftPartModel->setRootPath(homePath);
+    leftPartModel = new QFileSystemModel(this);
+    if (leftPartModel) {
+        leftPartModel->setFilter(QDir::NoDotAndDotDot | QDir::AllDirs);
+        leftPartModel->setRootPath(homePath);
+    }
 
     rightPartModel = new QFileSystemModel(this);
-    rightPartModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
-    rightPartModel->setRootPath(homePath);
+    if (rightPartModel) {
+        rightPartModel->setFilter(QDir::NoDotAndDotDot | QDir::Files);
+        rightPartModel->setRootPath(homePath);
+    }
 
     treeView = new QTreeView(this);
-    treeView->setModel(leftPartModel);
-    treeView->expandAll();
-    treeView->header()->resizeSection(0, 200);
+    if (treeView && leftPartModel) {
+        treeView->setModel(leftPartModel);
+        treeView->expandAll();
+        treeView->header()->resizeSection(0, 200);
+    }
 
     tableView = new QTableView(this);
-    tableView->setModel(rightPartModel);
+    if (tableView && rightPartModel) {
+        tableView->setModel(rightPartModel);
+    }
 
     m_splitter = new QSplitter(this);
-    m_splitter->addWidget(treeView);
-    m_splitter->addWidget(tableView);
-    setCentralWidget(m_splitter);
+    if (m_splitter) {
+        if (treeView) m_splitter->addWidget(treeView);
+        if (tableView) m_splitter->addWidget(tableView);
+        setCentralWidget(m_splitter);
+    }
 
-    QItemSelectionModel *selectionModel = treeView->selectionModel();
-    connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::on_selectionChangedSlot);
+    if (treeView) {
+        QItemSelectionModel *selectionModel = treeView->selectionModel();
+        if (selectionModel) {
+            connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::on_selectionChangedSlot);
+        }
+    }
 
-    connect(tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onFileSelectedForChart);
-    connect(m_exitButton, &QPushButton::clicked, this, &MainWindow::onExitChartMode);
-    connect(m_printButton, &QPushButton::clicked, this, &MainWindow::onPrintButtonClicked);
+    if (tableView && tableView->selectionModel()) {
+        connect(tableView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onFileSelectedForChart);
+    }
 
+    if (m_exitButton) {
+        connect(m_exitButton, &QPushButton::clicked, this, &MainWindow::onExitChartMode);
+    }
 
-    QItemSelection toggleSelection;
-    QModelIndex topLeft = leftPartModel->index(homePath);
-    toggleSelection.select(topLeft, topLeft);
-    selectionModel->select(toggleSelection, QItemSelectionModel::Toggle);
+    if (m_printButton) {
+        connect(m_printButton, &QPushButton::clicked, this, &MainWindow::onPrintButtonClicked);
+    }
 
-    onChartTypeChanged(0);
-    onStyleChanged(0);
+    if (leftPartModel && treeView && treeView->selectionModel()) {
+        QItemSelection toggleSelection;
+        QModelIndex topLeft = leftPartModel->index(homePath);
+        if (topLeft.isValid()) {
+            toggleSelection.select(topLeft, topLeft);
+            treeView->selectionModel()->select(toggleSelection, QItemSelectionModel::Toggle);
+        }
+    }
+
+    if (m_chartTypeCombo)
+        onChartTypeChanged(0);
+    if (m_styleCombo)
+        onStyleChanged(0);
+
 }
 
 void MainWindow::registerDependencies()
@@ -82,6 +122,11 @@ void MainWindow::registerDependencies()
 void MainWindow::onChartTypeChanged(int index)
 {
     Q_UNUSED(index);
+    if (!m_chartTypeCombo) {
+        QMessageBox::warning(this, "Ошибка", "Комбобокс не инициализирован");
+        return;
+    }
+
     QString chartType = m_chartTypeCombo->currentData().toString();
 
     if (chartType == "BarChart") {
@@ -90,7 +135,7 @@ void MainWindow::onChartTypeChanged(int index)
         m_currentRenderer = m_container.GetObject<IChartRenderer>("PieChart");
     }
 
-    if (!m_currentData.isEmpty()) {
+    if (!m_currentData.isEmpty() && m_currentRenderer) {
         updateChart();
     }
 }
@@ -98,6 +143,11 @@ void MainWindow::onChartTypeChanged(int index)
 void MainWindow::onStyleChanged(int index)
 {
     Q_UNUSED(index);
+    if (!m_styleCombo) {
+        QMessageBox::warning(this, "Ошибка", "Комбобокс не инициализирован");
+        return;
+    }
+
     QString styleType = m_styleCombo->currentData().toString();
 
     if (styleType == "Color") {
@@ -106,7 +156,7 @@ void MainWindow::onStyleChanged(int index)
         m_currentStyle = m_container.GetObject<IPrintStyle>("Gray");
     }
 
-    if (!m_currentData.isEmpty()) {
+    if (!m_currentData.isEmpty() && m_currentStyle) {
         updateChart();
     }
 }
@@ -116,17 +166,27 @@ void MainWindow::onFileSelectedForChart(const QModelIndex &index)
     if (!index.isValid())
         return;
 
+    if (!rightPartModel) {
+        statusBar()->showMessage("Ошибка: модель файлов не инициализирована");
+        return;
+    }
+
     QString filePath = rightPartModel->filePath(index);
     QFileInfo fileInfo(filePath);
     QString suffix = fileInfo.suffix().toLower();
 
     if (suffix == "json" || suffix == "db" || suffix == "sqlite") {
         loadDataFromFile(filePath);
-        statusBar()->showMessage("Выбран файл: " + fileInfo.fileName());
+        if (statusBar()) {
+            statusBar()->showMessage("Выбран файл: " + fileInfo.fileName());
+        }
     } else {
-        statusBar()->showMessage("Ошибка: выберите JSON или SQLite файл");
+        if (statusBar()) {
+            statusBar()->showMessage("Ошибка: выберите JSON или SQLite файл");
+        }
         QMessageBox::warning(this, "Ошибка", "Неподдерживаемый тип файла.\nВыберите JSON или SQLite файл.");
-        m_printButton->setEnabled(false);
+        if (m_printButton)
+            m_printButton->setEnabled(false);
     }
 }
 
@@ -134,14 +194,23 @@ void MainWindow::on_selectionChangedSlot(const QItemSelection &selected, const Q
 {
     Q_UNUSED(deselected);
 
+    if (!treeView || !leftPartModel || !tableView || !rightPartModel) {
+        if (statusBar()) {
+            statusBar()->showMessage("Компоненты не инициализированы");
+        }
+        return;
+    }
+
     QModelIndexList indexs = selected.indexes();
 
     QString filePath = "";
 
     if (indexs.count() >= 1) {
-        QModelIndex ix =  indexs.constFirst();
+        QModelIndex ix = indexs.constFirst();
         filePath = leftPartModel->filePath(ix);
-        this->statusBar()->showMessage("Выбранный путь : " + leftPartModel->filePath(indexs.constFirst()));
+        if (statusBar()) {
+            this->statusBar()->showMessage("Выбранный путь : " + leftPartModel->filePath(indexs.constFirst()));
+        }
     }
     tableView->setRootIndex(rightPartModel->setRootPath(filePath));
 }
@@ -157,12 +226,15 @@ void MainWindow::loadDataFromFile(const QString& filePath)
     m_currentFilePath = filePath;
     QFileInfo fileInfo(filePath);
     QString suffix = fileInfo.suffix().toLower();
-    m_statusLabel->setText("Загрузка: " + QFileInfo(filePath).fileName());
-    statusBar()->showMessage("Загрузка данных из: " + filePath);
+    if (m_statusLabel) {
+        m_statusLabel->setText("Загрузка: " + QFileInfo(filePath).fileName());
+    }
+    if (statusBar()) {
+        statusBar()->showMessage("Загрузка данных из: " + filePath);
+    }
     QCoreApplication::processEvents();
 
-    std::shared_ptr<IDataProvider> provider;
-
+    std::shared_ptr<IDataProvider> provider = nullptr;
 
     if (suffix == "json"){
         provider = std::make_shared<JSONDataAdapter>(filePath, "dd.MM.yyyy hh:mm");
@@ -188,46 +260,80 @@ void MainWindow::loadDataFromFile(const QString& filePath)
 
     } else {
         QMessageBox::warning(this, "Ошибка", "Неподдерживаемый тип файла");
-        m_statusLabel->setText("Ошибка: неподдерживаемый тип файла");
-        m_printButton->setEnabled(false);
+        if (m_statusLabel) {
+            m_statusLabel->setText("Ошибка: неподдерживаемый тип файла");
+        }
+        if (m_printButton)
+            m_printButton->setEnabled(false);
+        return;
+    }
+
+    if (!provider) {
+        QMessageBox::warning(this, "Ошибка", "Не удалось создать провайдер данных");
         return;
     }
 
     try {
         m_currentData = provider->getData();
 
-
         if (m_currentData.isEmpty()) {
             QMessageBox::warning(this, "Ошибка", "В файле нет данных или файл имеет неверный формат.\n" + filePath);
-            m_statusLabel->setText("Ошибка: нет данных в файле");
-            m_printButton->setEnabled(false);
-            statusBar()->showMessage("Нет данных в файле");
+            if (m_statusLabel) {
+                m_statusLabel->setText("Ошибка: нет данных в файле");
+            }
+            if (m_printButton) m_printButton->setEnabled(false);
+            if (statusBar()) {
+                statusBar()->showMessage("Нет данных в файле");
+            }
             return;
 
         } else {
-            m_statusLabel->setText(QString("Загружено %1 точек данных").arg(m_currentData.size()));
-            m_printButton->setEnabled(true);
-            statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+            if (m_statusLabel) {
+                m_statusLabel->setText(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+            }
+            if (m_printButton) m_printButton->setEnabled(true);
+            if (statusBar()) {
+                statusBar()->showMessage(QString("Загружено %1 точек данных").arg(m_currentData.size()));
+            }
         }
         switchToChartMode();
         updateChart();
 
     } catch (const std::exception& e){
         QMessageBox::warning(this, "Ошибка загрузки данных", e.what());
-        m_statusLabel->setText("Ошибка: неверный формат данных");
-        m_printButton->setEnabled(false);
+        if (m_statusLabel) {
+            m_statusLabel->setText("Ошибка: неверный формат данных");
+        }
+        if (m_printButton) m_printButton->setEnabled(false);
         m_currentData.clear();
     }
 }
 
 void MainWindow::switchToChartMode()
 {
-    if (m_isChartMode) return;
+    if (m_isChartMode)
+        return;
+
+    if (!m_splitter) {
+        if (statusBar()) {
+            statusBar()->showMessage("Ошибка: сплиттер не создан");
+        }
+        return;
+    }
+
+    if (!tableView || !m_chartWidget) {
+        if (statusBar()) {
+            statusBar()->showMessage("Ошибка: компоненты не созданы");
+        }
+        return;
+    }
 
     m_savedSizeSplitter = m_splitter->sizes();
 
     while (m_splitter->count()) {
-        m_splitter->widget(0)->setParent(nullptr);
+        QWidget* w = m_splitter->widget(0);
+        if (w)
+            w->setParent(nullptr);
     }
 
     m_splitter->addWidget(tableView);
@@ -235,20 +341,36 @@ void MainWindow::switchToChartMode()
     m_splitter->setSizes(m_savedSizeSplitter);
 
     m_isChartMode = true;
-    m_exitButton->setVisible(true);
-    statusBar()->showMessage("Режим графика. Нажмите 'Выход' для возврата");
+    if (m_exitButton)
+        m_exitButton->setVisible(true);
+    if (statusBar()) {
+        statusBar()->showMessage("Режим графика. Нажмите 'Выход' для возврата");
+    }
+
 }
 
 void MainWindow::onExitChartMode()
 {
-    if (!m_isChartMode) return;
+    if (!m_isChartMode)
+        return;
 
-    while (m_splitter->count()) {
-        m_splitter->widget(0)->setParent(nullptr);
+    if (!m_splitter) {
+        if (statusBar()) {
+            statusBar()->showMessage("Ошибка: сплиттер не создан");
+        }
+        return;
     }
 
-    m_splitter->addWidget(treeView);
-    m_splitter->addWidget(tableView);
+    while (m_splitter->count()) {
+        QWidget* w = m_splitter->widget(0);
+        if (w)
+             w->setParent(nullptr);
+    }
+
+    if (treeView)
+        m_splitter->addWidget(treeView);
+    if (tableView)
+        m_splitter->addWidget(tableView);
 
     if (!m_savedSizeSplitter.isEmpty() && m_savedSizeSplitter.size() == 2) {
         m_splitter->setSizes(m_savedSizeSplitter);
@@ -257,14 +379,27 @@ void MainWindow::onExitChartMode()
     }
 
     m_isChartMode = false;
-    m_exitButton->setVisible(false);
-    statusBar()->showMessage("Режим выбора файлов");
+    if (m_exitButton) m_exitButton->setVisible(false);
+    if (statusBar()) {
+        statusBar()->showMessage("Режим выбора файлов");
+    }
+
 }
 
 void MainWindow::updateChart()
 {
     if (m_currentData.isEmpty() || !m_currentRenderer) {
-        QMessageBox::warning(this, "Ошибка", "Нет данных");
+        QMessageBox::warning(this, "Ошибка", "Нет данных или не выбран тип графика");
+        return;
+    }
+
+    if (!m_chartView) {
+        QMessageBox::warning(this, "Ошибка", "Виджет графика не инициализирован");
+        return;
+    }
+
+    if (!m_currentStyle) {
+        QMessageBox::warning(this, "Ошибка", "Стиль не выбран");
         return;
     }
 
@@ -277,50 +412,81 @@ void MainWindow::updateChart()
 
     m_currentStyle->customizeChart(chart);
     m_chartView->setChart(chart);
+
 }
 
 void MainWindow::setupChartArea()
 {
     m_chartWidget = new QWidget();
+    if (!m_chartWidget)
+        return;
+
     QVBoxLayout* layout = new QVBoxLayout(m_chartWidget);
+    if (!layout)
+        return;
 
     QHBoxLayout* controlLayout = new QHBoxLayout();
+    if (!controlLayout)
+        return;
 
     QLabel* chartTypeLabel = new QLabel("Тип графика:");
+    if (chartTypeLabel) controlLayout->addWidget(chartTypeLabel);
+
     m_chartTypeCombo = new QComboBox();
-    m_chartTypeCombo->addItem("Столбчатая диаграмма", "BarChart");
-    m_chartTypeCombo->addItem("Круговая диаграмма", "PieChart");
+    if (m_chartTypeCombo) {
+        m_chartTypeCombo->addItem("Столбчатая диаграмма", "BarChart");
+        m_chartTypeCombo->addItem("Круговая диаграмма", "PieChart");
+        controlLayout->addWidget(m_chartTypeCombo);
+    }
 
     QLabel* styleLabel = new QLabel("Стиль печати:");
+    if (styleLabel) controlLayout->addWidget(styleLabel);
+
     m_styleCombo = new QComboBox();
-    m_styleCombo->addItem("Цветной", "Color");
-    m_styleCombo->addItem("Черно-белый", "Gray");
+    if (m_styleCombo) {
+        m_styleCombo->addItem("Цветной", "Color");
+        m_styleCombo->addItem("Черно-белый", "Gray");
+        controlLayout->addWidget(m_styleCombo);
+    }
 
     m_printButton = new QPushButton("Печать в PDF");
-    m_printButton->setEnabled(false);
+    if (m_printButton) {
+        m_printButton->setEnabled(false);
+        controlLayout->addWidget(m_printButton);
+    }
 
     m_exitButton = new QPushButton("Выход");
-    m_exitButton->setVisible(false);
-
-    controlLayout->addWidget(chartTypeLabel);
-    controlLayout->addWidget(m_chartTypeCombo);
-    controlLayout->addWidget(styleLabel);
-    controlLayout->addWidget(m_styleCombo);
-    controlLayout->addWidget(m_printButton);
-    controlLayout->addWidget(m_exitButton);
+    if (m_exitButton) {
+        m_exitButton->setVisible(false);
+        controlLayout->addWidget(m_exitButton);
+    }
 
     m_chartView = new QChartView();
-    m_chartView->setRenderHint(QPainter::Antialiasing);
+    if (m_chartView) {
+        m_chartView->setRenderHint(QPainter::Antialiasing);
+    }
 
     m_statusLabel = new QLabel("Выберите JSON или SQLite файл");
-    m_statusLabel->setAlignment(Qt::AlignCenter);
+    if (m_statusLabel) {
+        m_statusLabel->setAlignment(Qt::AlignCenter);
+    }
 
-    layout->addLayout(controlLayout);
-    layout->addWidget(m_chartView);
-    layout->addWidget(m_statusLabel);
+    if (layout) {
+        if (controlLayout)
+            layout->addLayout(controlLayout);
+        if (m_chartView)
+            layout->addWidget(m_chartView);
+        if (m_statusLabel)
+            layout->addWidget(m_statusLabel);
+    }
 
-    connect(m_chartTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onChartTypeChanged);
-    connect(m_styleCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onStyleChanged);
+    if (m_chartTypeCombo) {
+        connect(m_chartTypeCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onChartTypeChanged);
+    }
+    if (m_styleCombo) {
+        connect(m_styleCombo, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onStyleChanged);
+    }
+
 }
 
 void MainWindow::onPrintButtonClicked()
@@ -330,8 +496,19 @@ void MainWindow::onPrintButtonClicked()
         return;
     }
 
+    if (!m_currentRenderer) {
+        QMessageBox::warning(this, "Ошибка", "Рендерер графика не выбран");
+        return;
+    }
+
+    if (!m_currentStyle) {
+        QMessageBox::warning(this, "Ошибка", "Стиль печати не выбран");
+        return;
+    }
+
     QString fileName = QFileDialog::getSaveFileName(this, "Сохранить PDF", QDir::homePath() + "/chart.pdf", "PDF файлы (*.pdf)");
-    if (fileName.isEmpty()) return;
+    if (fileName.isEmpty())
+        return;
 
     QChart* chart = m_currentRenderer->createChart(m_currentData);
 
@@ -345,6 +522,8 @@ void MainWindow::onPrintButtonClicked()
     QChartView tempView;
     tempView.setChart(chart);
     tempView.resize(1200, 800);
+    tempView.show();
+    QCoreApplication::processEvents();
 
     QPrinter printer;
     m_currentStyle->configurePrinter(printer);
@@ -356,6 +535,9 @@ void MainWindow::onPrintButtonClicked()
 
     delete chart;
 
-    statusBar()->showMessage("PDF сохранен: " + QFileInfo(fileName).fileName());
+    if (statusBar()) {
+        statusBar()->showMessage("PDF сохранен: " + QFileInfo(fileName).fileName());
+    }
     QMessageBox::information(this, "Успех", "График сохранен в PDF");
+
 }
