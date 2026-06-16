@@ -59,7 +59,6 @@ void GrayStyle::customizeChart(QChart* chart)
     if (!chart->axes().isEmpty()) {
         for (QAbstractAxis* axis : chart->axes()) {
             axis->setLabelsVisible(true);
-            axis->setLabelsVisible(true);
             axis->setLabelsColor(Qt::black);
         }
     }

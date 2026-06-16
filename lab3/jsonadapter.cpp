@@ -46,7 +46,7 @@ DataSet JSONDataAdapter::getData() const
         }
 
         QString dateStr = obj["date"].toString();
-        point.date = QDateTime::fromString(obj["date"].toString(), m_dateFormat);
+        point.date = QDateTime::fromString(dateStr, m_dateFormat);
 
 
         if (!point.date.isValid()) {

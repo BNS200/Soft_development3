@@ -51,5 +51,5 @@ void PieChartRenderer::customizeChart(QChart* chart)
 {
     chart->setTheme(QChart::ChartThemeLight);
     chart->legend()->setVisible(true);
-    chart->legend()->setAlignment(Qt::AlignRight);
+    chart->legend()->setAlignment(Qt::AlignBottom);
 }
